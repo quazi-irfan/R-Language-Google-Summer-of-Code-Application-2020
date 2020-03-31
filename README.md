@@ -39,4 +39,6 @@ library(ggplot2)
 ggplot(temp, aes(x, y)) + geom_line() + facet_grid(data_label~.)
 ```
 
+![Medium](Medium/output.png)
+
 ### Hard: Demonstrate your capability in one of the "Bayesian packages for general model fitting" listed here: https://cloud.r-project.org/web/views/Bayesian.html, or in writing an R package with C++ code.
