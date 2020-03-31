@@ -144,14 +144,14 @@ mcmcR <- function(samples, success, trials){
   return(chain)
 }
 ```
-The function returns 10,000 values samples from the posterior. Here we are plotting them in a histogram, and overplotting the kernel density estimate of the same data shown in red. This problem can be solved analystically because beta-binomial conjucate. The posterior follow Beta distribution with 5 and 7 as shape parameter, which is shown in Blue.
+The function returns 10,000 values samples from the posterior. Here we are plotting them in a histogram, and overplotting the kernel density estimate of the same data shown in red. This problem can be solved analystically because beta-binomial conjucate. The posterior follow Beta distribution with 5 and 7 as shape parameter, which is shown in Blue. Since the blue and red distribution is almost similar - we conclude that our estimation is correct.
 ![samples](Hard/mcmcR_samples.png)
 
 Here we are checking that Markov chain(samples) are stationary, and since the values do not seem to deviate too much from the mean we conclude that the chain is stationary.
 ![trace1](Hard/mcmcR_chain.png)
 
 ### MCMC HM Implementation in Cpp mcmcCpp
-Now lets see how can we speed up the sampling process using a C++ implementation. Here we can see the our C++ sampler also reach stationary,
+R is known to be slow because it lacks fine grained control over the memory. So we will re-implement the same algorithm in C++ and finally we will test the difference in performance. Here is the C++ implementation of the MCMC HM algorithm that is available in MCMCHMSampler package available inside the Hard directory.
 
 ```Cpp
 #include <Rcpp.h>
@@ -187,17 +187,17 @@ NumericVector mcmcCpp(int length, int success, int trials) {
   return chain;
 }
 ```
-Now calling the function from R,
-
+Once we've installed the library locally, we can call the implementation from R in the following manner.
 ```R
 chainCpp <- mcmcCpp(10000, 4, 10)
 plot(chainCpp, type="l")
 ```
+Similarly we can look at the distribution of the sample which is marked in red, and it closely follows the analytic soution which is marked in blue. From the trace plot we see that the chain is stationary.
 ![samplescpp](Hard/mcmcCpp_samples.png)
 ![trace2](Hard/mcmcCpp_chain.png)
 
 ### Benchmark between mcmcR mcmcCpp
-Lets look at the performance difference between this two implementation
+Lets look at the performance difference between this two implementation using microbenchmark R package. Here we can see that the C++ implementation is outperforming the R implementation without even when the algorithm was implementated as-is.
 ```R
 library(microbenchmark)
 library(ggplot2)
@@ -206,4 +206,4 @@ ggplot2::autoplot(benchmark_result)
 ```
 ![benchmark](Hard/benchmark.png)
 
-Here we can see the the C++ implements outperforms R implementation.
+The mean elpased time for mcmcCpp is and for mcmcR. The C++ implementation is times faster then R implementation.
