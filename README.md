@@ -1,5 +1,7 @@
 # MCMC for Forensic Science - Solutions
 
+Questions: https://github.com/rstats-gsoc/gsoc2020/wiki/MCMC-for-forensic-science
+
 ## Easy
 
 ```R
