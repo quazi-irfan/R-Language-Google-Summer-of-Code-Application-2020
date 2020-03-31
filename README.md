@@ -206,4 +206,4 @@ ggplot2::autoplot(benchmark_result)
 ```
 ![benchmark](Hard/benchmark.png)
 
-The mean elpased time for mcmcCpp is and for mcmcR. The C++ implementation is times faster then R implementation.
+The mean elpased time for mcmcCpp is 10 miliseconds and 264 miliseconds for mcmcR. The C++ implementation is about 25 times faster then R implementation.
