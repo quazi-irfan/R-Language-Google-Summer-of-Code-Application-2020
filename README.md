@@ -175,6 +175,7 @@ Now calling the function from R,
 chainCpp <- mcmcCpp(10000, 4, 10)
 plot(chainCpp, type="l")
 ```
+![samplescpp](Hard/mcmcCpp_samples.png)
 ![trace2](Hard/mcmcCpp_chain.png)
 
 ### Difference in performance
