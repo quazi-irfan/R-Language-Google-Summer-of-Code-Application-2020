@@ -48,13 +48,13 @@ ggplot(temp, aes(x, y)) + geom_line() + facet_grid(data_label~.)
 
 For the hard problem, I chose to use the rStan package. This package converts models specified in R into Stan model. We start by running a multivariate linear regression on WaffleHouse dataset, where we would estimate the regression coefficient when regressing Divorce on Median age and Marriage rate using lm() function. Then we estimate those coefficients again using rStan given we have a prior knowledge of our problem. 
 
-Stan uses Markov chain Monte Carlo(MCMC) to collect samples from the posterior of the regression coefficients. Later we implement MCMC Metropolis-Hastings algorithm in R to demonstrate the internals of the algorithm. Afterward, we reimplement it in C++ for better performance. Finally we will run benchmark to see the improvement in performance.
+Stan uses Markov chain Monte Carlo(MCMC) to collect samples from the posterior of the regression coefficients. Later we implement MCMC Metropolis-Hastings(MH) algorithm in R to demonstrate the internals of the algorithm. Afterward, we reimplement it in C++ for better performance. Finally we will run benchmark to see the improvement in performance.
 
 Jump to content: 
 1. [Regression using lm](#regression-using-lm)
 2. [Regression using rStan](#regression-using-rstan)
-3. [MCMC HM Implementation in R mcmcR](#mcmc-hm-implementation-in-r-mcmcr)
-4. [MCMC HM Implementation in Cpp mcmcCpp](#mcmc-hm-implementation-in-cpp-mcmccpp)
+3. [MCMC MH Implementation in R mcmcR](#mcmc-mh-implementation-in-r-mcmcr)
+4. [MCMC MH Implementation in Cpp mcmcCpp](#mcmc-mh-implementation-in-cpp-mcmccpp)
 5. [Benchmark between mcmcR mcmcCpp](#benchmark-between-mcmcr-mcmccpp)
 
 Many supporting codes are omitted from this section of the document for brevity. They are available under the Hard folder.
@@ -110,7 +110,7 @@ But how Stan is estimating the parameters? It is using the MCMC method. It is a 
 
 ![stanchain](Hard/stan_chain.png)
 
-### MCMC HM Implementation in R mcmcR
+### MCMC MH Implementation in R mcmcR
 But how does the MCMC sampling works? Here we demonstrate how it works by implementing it in R language. 
 
 Given problem: Let's say in a sequence of 10 coin tosses, we get 4 heads. What is the distribution of the probability of head(p) given the event we've just observed?
@@ -156,7 +156,7 @@ The function returns 10,000 values samples from the posterior. Here we are plott
 Here we are checking that Markov chain(samples) are stationary, and since the values do not seem to deviate too much from the mean, we conclude that the chain is stationary.
 ![trace1](Hard/mcmcR_chain.png)
 
-### MCMC HM Implementation in Cpp mcmcCpp
+### MCMC MH Implementation in Cpp mcmcCpp
 R is known to be slow because it lacks fine-grained control over memory. So we reimplement the same algorithm in C++. Afterward, we test the difference in performance. 
 
 Here is the C++ implementation of the MCMC HM algorithm that is available in MCMCHMSampler package available inside the Hard directory.
