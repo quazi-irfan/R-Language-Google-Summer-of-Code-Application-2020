@@ -44,6 +44,12 @@ ggplot(temp, aes(x, y)) + geom_line() + facet_grid(data_label~.)
 
 ## Hard
 
+For the hard problem I chose to use the rStan package. This package converts models specified in R into Stan model. We will start by running a linear regression on WaffleHouse dataset. Here we will estimate the regression coefficient when regressing Divorce on Median age and Marriage rate using lm() function. But we want to encode prior information about the regression coefficeient and we use calculcate the coefficient estimate condition on the prior using rStan pacakge.
+
+Finally, the Stan model uses MCMC to collect sample from the posteior of the regression coefficients. We will reimplmeemnt MCMC HM algorithm in R to demonestrate how the algorithm work. Afterwards we will reimplement it in C++ for better performance. Finally we will run benchmark to calcualte the time to take to calculate 10,000 samples using both function to find which implementation runs faster.
+
+lm() function uses ordinary least square method to estimate the regression coefficient. But if we have prior knowledge of the relationship betweeen Divorce and Marriage Age or Divorce and Marriage Rate we can encode that knowledge into the prior distribution of the parameter. We will use rStan 
+
 ### Multivariate regression (lm)
 Here we are performing multivariate regression using the WaffleDivorce dataset from rethinking package.
 
