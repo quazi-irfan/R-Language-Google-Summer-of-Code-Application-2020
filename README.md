@@ -44,13 +44,18 @@ ggplot(temp, aes(x, y)) + geom_line() + facet_grid(data_label~.)
 
 ## Hard
 
-For the hard problem I chose to use the rStan package. This package converts models specified in R into Stan model. We will start by running a linear regression on WaffleHouse dataset. Here we will estimate the regression coefficient when regressing Divorce on Median age and Marriage rate using lm() function. But we want to encode prior information about the regression coefficeient and we use calculcate the coefficient estimate condition on the prior using rStan pacakge.
+For the hard problem I chose to use the rStan package. This package converts models specified in R into Stan model. We will start by running a multivariate linear regression on WaffleHouse dataset where we would estimate the regression coefficient when regressing Divorce on Median age and Marriage rate using lm() function. Then we will estimate those coefficients again using rStan given we have a prior knowledge our problem. 
 
-Finally, the Stan model uses MCMC to collect sample from the posteior of the regression coefficients. We will reimplmeemnt MCMC HM algorithm in R to demonestrate how the algorithm work. Afterwards we will reimplement it in C++ for better performance. Finally we will run benchmark to calcualte the time to take to calculate 10,000 samples using both function to find which implementation runs faster.
+Stan uses Markov chain Monte Carlo(MCMC) to collect sample from the posteior of the regression coefficients. We will reimplmeemnt MCMC Metropolis–Hastings algorithm algorithm in R to demonestrate how the algorithm works. Afterwards we will reimplement it in C++ for better performance. Finally we will run benchmark to see the improvement in performance.
 
-lm() function uses ordinary least square method to estimate the regression coefficient. But if we have prior knowledge of the relationship betweeen Divorce and Marriage Age or Divorce and Marriage Rate we can encode that knowledge into the prior distribution of the parameter. We will use rStan 
+Jump to content:
+1. [Regression using lm](#regression-using-lm)
+2. [Regression using rStan](#regression-using-lm)
+3. [MCMC HM Implementation in R mcmcR](#mcmc-hm-implementation-in-r-mcmcr)
+4. [MCMC HM Implementation in Cpp mcmcCpp](#mcmc-hm-implementation-in-cpp-mcmccpp)
+5. [Benchmark between mcmcR mcmcCpp](#benchmark-between-mcmcr-mcmccpp)
 
-### Multivariate regression (lm)
+### Regression using lm
 Here we are performing multivariate regression using the WaffleDivorce dataset from rethinking package.
 
 ```R
@@ -71,7 +76,7 @@ Coefficients:
 MedianAgeMarriage -0.99965    0.24593  -4.065 0.000182 ***
 Marriage          -0.05686    0.08053  -0.706 0.483594    
 ```
-### Bayesian Multivariate regression (rStan)
+### Regression using rStan
 Now, if we have prior knowledge about the parameters we are estimating, we have to use Bayesian statistics. We perform another multivariate regression using priors over all parameters. We will use the **rStan** package. We will write our model, and rStan will convert it to a model that Stan model.
 
 ```R
@@ -99,7 +104,7 @@ Internally, Stan is using MCMC method to sample parameter from each of the poste
 
 ![stanchain](Hard/stan_chain.png)
 
-### MCMC HM Sampler(in R)
+### MCMC HM Implementation in R mcmcR
 Here is a MCMC HM samplers in R.
 
 ```R
@@ -139,7 +144,7 @@ Here we see the histogram, and kernel density estimation(in red) using the sampl
 Here is also the trace plot to demontstrae our samples can attain staionarity.
 ![trace1](Hard/mcmcR_chain.png)
 
-### MCMC HM Sampler(in C++)
+### MCMC HM Implementation in Cpp mcmcCpp
 Now lets see how can we speed up the sampling process using a C++ implementation. Here we can see the our C++ sampler also reach stationary,
 
 ```Cpp
@@ -185,7 +190,7 @@ plot(chainCpp, type="l")
 ![samplescpp](Hard/mcmcCpp_samples.png)
 ![trace2](Hard/mcmcCpp_chain.png)
 
-### Difference in performance
+### Benchmark between mcmcR mcmcCpp
 Lets look at the performance difference between this two implementation
 ```R
 library(microbenchmark)
