@@ -44,20 +44,22 @@ ggplot(temp, aes(x, y)) + geom_line() + facet_grid(data_label~.)
 
 ## Hard
 
-For the hard problem I chose to use the rStan package. This package converts models specified in R into Stan model. We will start by running a multivariate linear regression on WaffleHouse dataset where we would estimate the regression coefficient when regressing Divorce on Median age and Marriage rate using lm() function. Then we will estimate those coefficients again using rStan given we have a prior knowledge our problem. 
+For the hard problem, I chose to use the rStan package. This package converts models specified in R into Stan model. We start by running a multivariate linear regression on WaffleHouse dataset, where we would estimate the regression coefficient when regressing Divorce on Median age and Marriage rate using lm() function. Then we estimate those coefficients again using rStan given we have a prior knowledge of our problem. 
 
-Stan uses Markov chain Monte Carlo(MCMC) to collect sample from the posteior of the regression coefficients. We will reimplmeemnt MCMC Metropolis–Hastings algorithm algorithm in R to demonestrate how the algorithm works. Afterwards we will reimplement it in C++ for better performance. Finally we will run benchmark to see the improvement in performance.
+Stan uses Markov chain Monte Carlo(MCMC) to collect samples from the posterior of the regression coefficients. Later we implement MCMC Metropolis-Hastings algorithm in R to demonstrate the internals of the algorithm. Afterward, we reimplement it in C++ for better performance. Finally we will run benchmark to see the improvement in performance.
 
-Jump to content:
+Jump to content: 
 1. [Regression using lm](#regression-using-lm)
 2. [Regression using rStan](#regression-using-rstan)
 3. [MCMC HM Implementation in R mcmcR](#mcmc-hm-implementation-in-r-mcmcr)
 4. [MCMC HM Implementation in Cpp mcmcCpp](#mcmc-hm-implementation-in-cpp-mcmccpp)
 5. [Benchmark between mcmcR mcmcCpp](#benchmark-between-mcmcr-mcmccpp)
 
+Many supporting codes are omitted from this section of the document for brevity. They are available under the Hard folder.
+
 ### Regression using lm
 
-Here we are regressing Divorce on Marriage median age and Marriage rate. When using lm function we are assuming uniform prior distribution on the parameter of interest.
+Here we are regressing Divorce on Marriage median age and Marriage rate. When using lm function, we are assuming uniform prior distribution on the parameter of interest.
 
 ```R
 rm(list=ls())
@@ -68,7 +70,7 @@ d <- d[ , c("Divorce","MedianAgeMarriage","Marriage") ]
 
 summary(lm(Divorce ~ MedianAgeMarriage + Marriage, data=d))
 ```
-Here is the summery of the fitted model, and here we can see that the values of the regression coefficient and their standard error. We can see the Median Age is an important predictor in predicting Divorce rate.
+Here is the summary of the fitted model, and here we can see that the values of the regression coefficient and their standard error. We can see the Median Age is an important predictor in predicting Divorce rate.
 
 ```console
 Coefficients:
@@ -78,7 +80,7 @@ MedianAgeMarriage -0.99965    0.24593  -4.065 0.000182 ***
 Marriage          -0.05686    0.08053  -0.706 0.483594    
 ```
 ### Regression using rStan
-Now, if we have prior knowledge about the parameters we are estimating and we will use rStan to encode that information before estimating the coefficients again. We will specifiy the model with its prior in R but rStan converts it to a Stan mode.
+Now, if we have prior knowledge about the parameters, we can encode it in their prior distribution. We can not use lm function anymore since it assumes a uniform prior for the parameters. The new models need to be fit using rStan. We will specify the model with its prior in R and rStan will convert it to a Stan model.
 
 ```R
 model <- map2stan( 
@@ -102,16 +104,18 @@ bR    -0.06 0.08 -0.19  0.07   262     1
 bA    -1.00 0.24 -1.38 -0.62   236     1
 sigma  1.52 0.16  1.29  1.77   374     1
 ```
-But how Stan is estimating the paramter? It is using MCMC method. It is a sampling algorithm. To validate the Markon chains generated during the model fitting - we need to check if the chain is stationary. In the following figure we see that the once the parameter values are stable, they are not deviating too much from the mean therefore making our chain stable.
+But how Stan is estimating the parameters? It is using the MCMC method. It is a sampling algorithm. To validate the Markon chains generated during the model fitting - we need to check if the chain is stationary. In the following figure, we see that once the parameter values are stationary, which means samples are not deviating too much from the mean results in a stationary Markov chain.
 
 ![stanchain](Hard/stan_chain.png)
 
 ### MCMC HM Implementation in R mcmcR
-But how does the MCMC sampling works? Here we will demonestrate how it work by reimplmenting it in R. We will work with a different problem. Lets say in sequence of 10 coin tosses we get 4 head. What is the distribution of probability of head(p) given the event we've just observed.
+But how does the MCMC sampling works? Here we demonstrate how it works by implementing it in R language. 
 
-Here the likelihood function is binomial with parameter value of 4 and 10. Prior of p follows beta distribution with 1 and 1 as shape parameters. We need to find the posterior distribution of p given we've oberved 4 heads out of 10 coin tosses.
+Given problem: Let's say in a sequence of 10 coin tosses, we get 4 heads. What is the distribution of the probability of head(p) given the event we've just observed?
 
-The following function, **mcmcR** takes 3 parameters. First one is the number of samples we want to sample from our posteiror, second one is the number of coin tosses results in head and the final one is the number of trials. 
+Here the likelihood function is binomial with a parameter value of 4 and 10. Prior of p follows a beta distribution with 1 and 1 as shape parameters. We need to find the posterior distribution of p given we've observed 4 heads out of 10 coin tosses.
+
+The following function, **mcmcR** takes 3 parameters. The first one is the number of samples we want to sample from our posterior, the second one is the number of coin tosses results in head, and the final one is the number of trials. 
 
 ```R
 rm(list=ls())
@@ -144,14 +148,16 @@ mcmcR <- function(samples, success, trials){
   return(chain)
 }
 ```
-The function returns 10,000 values samples from the posterior. Here we are plotting them in a histogram, and overplotting the kernel density estimate of the same data shown in red. This problem can be solved analystically because beta-binomial conjucate. The posterior follow Beta distribution with 5 and 7 as shape parameter, which is shown in Blue. Since the blue and red distribution is almost similar - we conclude that our estimation is correct.
+The function returns 10,000 values samples from the posterior. Here we are plotting them in a histogram, and overplotting the kernel density estimate of the same data shown in red. This problem can be solved analytically because of the beta-binomial conjugate. The posterior follows a Beta distribution with 5 and 7 as a shape parameter, which is shown in Blue. Since the blue and red distribution is almost similar - we conclude that our estimation is correct. Here we can also see that the mode is estimating the mean for p is about 0.4, which is 4 heads out of 10 tosses.
 ![samples](Hard/mcmcR_samples.png)
 
-Here we are checking that Markov chain(samples) are stationary, and since the values do not seem to deviate too much from the mean we conclude that the chain is stationary.
+Here we are checking that Markov chain(samples) are stationary, and since the values do not seem to deviate too much from the mean, we conclude that the chain is stationary.
 ![trace1](Hard/mcmcR_chain.png)
 
 ### MCMC HM Implementation in Cpp mcmcCpp
-R is known to be slow because it lacks fine grained control over the memory. So we will re-implement the same algorithm in C++ and finally we will test the difference in performance. Here is the C++ implementation of the MCMC HM algorithm that is available in MCMCHMSampler package available inside the Hard directory.
+R is known to be slow because it lacks fine-grained control over memory. So we reimplement the same algorithm in C++. Afterward, we test the difference in performance. 
+
+Here is the C++ implementation of the MCMC HM algorithm that is available in MCMCHMSampler package available inside the Hard directory.
 
 ```Cpp
 #include <Rcpp.h>
@@ -192,12 +198,12 @@ Once we've installed the library locally, we can call the implementation from R 
 chainCpp <- mcmcCpp(10000, 4, 10)
 plot(chainCpp, type="l")
 ```
-Similarly we can look at the distribution of the sample which is marked in red, and it closely follows the analytic soution which is marked in blue. From the trace plot we see that the chain is stationary.
+Similar to the last section, we can look at the distribution of the sample, which is marked in red, and it closely follows the analytic solution, which is marked in blue. From the trace plot, we see that the chain is stationary.
 ![samplescpp](Hard/mcmcCpp_samples.png)
 ![trace2](Hard/mcmcCpp_chain.png)
 
 ### Benchmark between mcmcR mcmcCpp
-Lets look at the performance difference between this two implementation using microbenchmark R package. Here we can see that the C++ implementation is outperforming the R implementation without even when the algorithm was implementated as-is.
+Lets look at the performance difference between this two implementation using microbenchmark R package. Here we can see that the C++ implementation is outperforming the R implementation even when the algorithm was implementated as-is.
 ```R
 library(microbenchmark)
 library(ggplot2)
@@ -206,4 +212,4 @@ ggplot2::autoplot(benchmark_result)
 ```
 ![benchmark](Hard/benchmark.png)
 
-The mean elpased time for mcmcCpp is 10 miliseconds and 264 miliseconds for mcmcR. The C++ implementation is about 25 times faster then R implementation.
+The mean elapsed time for mcmcCpp is 10 milliseconds and 264 milliseconds for mcmcR. The C++ implementation is about 25 times faster than R implementation.
