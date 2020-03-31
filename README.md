@@ -130,7 +130,7 @@ mcmcR <- function(samples, success, trials){
   lapply(2:n, function(x){
     nextState <- rnorm(1, chain[x-1], sd = 0.16) # Monte Carlo
     
-    # estimate coin toss p
+    # estimate probability of head in a coin toss p
     # dbeta(1,1) Almost uniform prior
     # dbinom(4, 10) 4 heads our of 10 tosses
     # Metropolis-Hasting Step
