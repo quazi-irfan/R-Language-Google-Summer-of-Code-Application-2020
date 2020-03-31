@@ -127,7 +127,7 @@ mcmcR <- function(samples, success, trials){
   n <- samples
   chain <- sapply(rep(NA, n), c)
   chain[1] <- 0.5
-  for(x in 2:n){
+  lapply(2:n, function(x){
     nextState <- rnorm(1, chain[x-1], sd = 0.16) # Monte Carlo
     
     # estimate coin toss p
@@ -140,13 +140,13 @@ mcmcR <- function(samples, success, trials){
     
     acceptance_prob <- min(likelihood_ratio, 1)
     if(acceptance_prob == 1){
-      chain[x] = nextState
+      chain[x]  <<-  nextState
     } else if(acceptance_prob > runif(1)){
-      chain[x] = nextState
+      chain[x] <<-  nextState
     } else {
-      chain[x] = chain[x-1]
+      chain[x]  <<-  chain[x-1]
     }
-  }
+  })
   return(chain)
 }
 ```
